@@ -1,6 +1,7 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { IsLatitude } from 'class-validator';
+import { log } from 'console';
 import { access } from 'fs';
 import { AddressesService } from 'src/address/addresses.service';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
@@ -89,7 +90,7 @@ export class AuthService {
       }
     const newUser = await this.watuserService.createWatuser({email: email, password: password})
     const watpayload = {
-      name: "default wat",
+      name: "วัดปลูกศรัทธา",
       admin_id: newUser.id,
       admin_name: "-",
       phoneNumber: "-",
@@ -104,12 +105,14 @@ export class AuthService {
     }
 
     const newWat = await this.watService.createWat(watpayload)
+
     if(!newWat){
       throw new BadRequestException("Can't create wat")
     }
 
     const addresspayload = {
       wat_id: newWat.id,
+      wat_name: newWat.name,
       address: "-",
       street: "-",
       alley: "-",

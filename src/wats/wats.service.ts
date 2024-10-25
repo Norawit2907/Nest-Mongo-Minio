@@ -13,7 +13,7 @@ export class WatsService {
 
     async createWat(createwatDto: CreateWatDto): Promise<Wat> {
         const newWat = new this.watModel(createwatDto);
-        newWat.save();
+        await newWat.save();
         return this.toEntity(newWat);
       }
 
@@ -21,7 +21,6 @@ export class WatsService {
        const existUser = await this.watModel.findOne({
        _id: new mongoose.Types.ObjectId(id),
        });
-    
         return existUser ? this.toEntity(existUser) : null;
       }
 
