@@ -90,7 +90,7 @@ export class AuthService {
       }
     const newUser = await this.watuserService.createWatuser({email: email, password: password})
     const watpayload = {
-      name: "default wat",
+      name: "วัดปลูกศรัทธา",
       admin_id: newUser.id,
       admin_name: "-",
       phoneNumber: "-",
@@ -105,7 +105,7 @@ export class AuthService {
     }
 
     const newWat = await this.watService.createWat(watpayload)
-    
+
     if(!newWat){
       throw new BadRequestException("Can't create wat")
     }
