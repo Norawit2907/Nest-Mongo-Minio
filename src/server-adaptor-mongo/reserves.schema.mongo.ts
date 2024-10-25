@@ -11,9 +11,6 @@ export class ReservesMongo {
   @Prop({ default: Date.now })
   user_id: string;
 
-  @Prop({ default: "Wat Arun" })
-  namewat: string;
-
   @Prop({ default: Date.now })
   reservation_date: string;
 

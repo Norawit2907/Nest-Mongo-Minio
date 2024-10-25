@@ -16,11 +16,7 @@ import {
     @ApiProperty({ example: 'USER-456', description: 'User identifier who made the reservation' })
     user_id: string;
 
-    @IsString()
-    @ApiProperty({ example: 'Wat Arun', description: 'Name of Wat that had reservation'})
-    namewat: string;
-
-    @IsString()
+    @IsString() 
     @ApiProperty({ example: 'wat', description: 'User identifier who made the reservation' })
     sender: string;
   

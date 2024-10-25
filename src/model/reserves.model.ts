@@ -3,7 +3,6 @@ import { dbMeta } from './common.model';
 export type ReservesBody = {
   wat_id: string;
   user_id: string;
-  namewat: string;
   reservation_date: string;
   cremation_date: string;
   duration: string;
