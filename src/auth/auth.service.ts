@@ -90,7 +90,7 @@ export class AuthService {
       }
     const newUser = await this.watuserService.createWatuser({email: email, password: password})
     const watpayload = {
-      name: "วัดปลูกศรัทธา",
+      name: "ประเทศไทย",
       admin_id: newUser.id,
       admin_name: "-",
       phoneNumber: "-",
