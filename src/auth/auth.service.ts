@@ -1,6 +1,7 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { IsLatitude } from 'class-validator';
+import { log } from 'console';
 import { access } from 'fs';
 import { AddressesService } from 'src/address/addresses.service';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
@@ -121,6 +122,8 @@ export class AuthService {
       latitude: "-",
       longtitude: "-"
     }
+
+    console.log(addresspayload)
 
     const newAddress = await this.addressService.createAddress(addresspayload)
 

@@ -8,11 +8,14 @@ import { CreateAddressDto } from './dto/create-addresses.dto';
 import { UpdateAddressDto } from './dto/update-addresses.dto';
 import { GeocodingService } from 'src/geocoding/geocoding.service';
 import { WatMongo } from 'src/server-adaptor-mongo/wat.schema.mongo';
+import { watch } from 'fs';
+import { WatsService } from 'src/wats/wats.service';
 
 @Injectable()
 export class AddressesService {
   constructor(@InjectModel('AddressMongo') private addressModel: Model<AddressMongo>,
     private readonly geocodingService: GeocodingService,
+    private readonly WatsService: WatsService,
     @InjectModel('WatMongo') private watModel: Model<WatMongo>,
   ) { }
 
@@ -22,15 +25,13 @@ export class AddressesService {
     //   throw new NotFoundException("Address already exist")
     // }
 
-    const wat = await this.watModel.findOne({
-      _id: new mongoose.Types.ObjectId(createaddressDto.wat_id),
-    })
+   const wat = (this.WatsService.getWatById(createaddressDto.wat_id))
 
     if (!wat) {
       throw new NotFoundException('Wat not found');
     }
 
-    const watName = wat.name;
+    const watName = wat[0].name;
 
     console.log(watName);
 
