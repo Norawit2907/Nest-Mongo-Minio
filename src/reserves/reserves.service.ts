@@ -5,6 +5,7 @@ import { ReservesDto } from './dto/reserves.dto';
 import { ReservesMongo } from 'src/server-adaptor-mongo/reserves.schema.mongo';
 import { WatMongo } from 'src/server-adaptor-mongo/wat.schema.mongo';
 import { NotificationService } from 'src/notification/notification.service';
+import { Reserves } from 'src/model/reserves.model';
 
 @Injectable()
 export class ReservesService {
@@ -28,6 +29,44 @@ export class ReservesService {
     return reserve;
   }
 
+  async getReservationsByWatId(id: string): Promise<ReservesMongo[]> {
+    const existingReservations = await this.reservesModel.find({
+      wat_id: id,
+    });
+  
+    if (existingReservations.length === 0) {
+      throw new ConflictException(`There are no reservations for Wat ID ${id}`);
+    }
+  
+    return existingReservations;
+  }
+
+  async getReservationsAmount(id: string): Promise<{ [date: string]: number }> {
+    const existingReservations = await this.getReservationsByWatId(id);
+    const reservationCounts: { [date: string]: number } = {};
+
+    existingReservations.forEach(reservation => {
+        const startDate = new Date(reservation.reservation_date);
+        const duration = parseInt(reservation.duration, 10);
+        
+        for (let i = 0; i < duration; i++) {
+            const currentDate = new Date(startDate);
+            currentDate.setDate(startDate.getDate() + i);
+            const dateString = currentDate.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+
+            // Increment the count for this date
+            if (reservationCounts[dateString]) {
+                reservationCounts[dateString]++;
+            } else {
+                reservationCounts[dateString] = 1;
+            }
+        }
+    });
+
+    return reservationCounts;
+}
+
+  
 
   async create(createReserveDto: ReservesDto): Promise<ReservesMongo> {
     const reservationDate = new Date(createReserveDto.reservation_date);
@@ -71,12 +110,12 @@ export class ReservesService {
     // console.log(maxWorkload.max_workload);
     // console.log(existingCremations);
     // console.log(endDate.toISOString().split('T')[0] < cremationDate.toISOString().split('T')[0]);
-    if (existingReservations.length > 0) {
+    if (existingReservations.length >= maxWorkload.max_workload) {
       throw new ConflictException('A reservation with the same wat_id and overlapping dates already exists.');
     }
-    if (existingCremations.length >= maxWorkload.max_workload) {
-      throw new ConflictException('A Wat Meru is Full');
-    }
+    // if (existingCremations.length > 0) {
+    //   throw new ConflictException('A Wat Meru is Full');
+    // }
 
     // Send a notification after saving the reservation
     await this.notificationService.createNotification({
