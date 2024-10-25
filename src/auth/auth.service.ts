@@ -105,6 +105,7 @@ export class AuthService {
     }
 
     const newWat = await this.watService.createWat(watpayload)
+    
     if(!newWat){
       throw new BadRequestException("Can't create wat")
     }
@@ -122,8 +123,6 @@ export class AuthService {
       latitude: "-",
       longtitude: "-"
     }
-
-    console.log(addresspayload)
 
     const newAddress = await this.addressService.createAddress(addresspayload)
 

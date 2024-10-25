@@ -24,16 +24,13 @@ export class AddressesService {
     // if(this.getAddressByWatId(createaddressDto.wat_id)){
     //   throw new NotFoundException("Address already exist")
     // }
-
-   const wat = (this.WatsService.getWatById(createaddressDto.wat_id))
+    const wat = await this.WatsService.getWatById(createaddressDto.wat_id);
 
     if (!wat) {
       throw new NotFoundException('Wat not found');
     }
 
-    const watName = wat[0].name;
-
-    console.log(watName);
+    const watName = wat.name;
 
     const address_lat_lng = await this.geocodingService.getCoordinates(watName);
 
