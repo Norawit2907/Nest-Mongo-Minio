@@ -37,6 +37,10 @@ export class UpdateWatDto {
   @ApiProperty()
   max_workload: number;
 
+  @IsNumber()
+  @ApiProperty()
+  max_cremload: number;
+
   @IsString()
   @ApiProperty()
   description: string;
