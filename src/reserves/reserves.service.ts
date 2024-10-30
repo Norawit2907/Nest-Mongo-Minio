@@ -33,11 +33,11 @@ export class ReservesService {
     const existingReservations = await this.reservesModel.find({
       wat_id: id,
     });
-  
+
     if (existingReservations.length === 0) {
       throw new ConflictException(`There are no reservations for Wat ID ${id}`);
     }
-  
+
     return existingReservations;
   }
 
@@ -46,35 +46,37 @@ export class ReservesService {
     const reservationCounts: { [date: string]: number } = {};
 
     existingReservations.forEach(reservation => {
-        const startDate = new Date(reservation.reservation_date);
-        const duration = parseInt(reservation.duration, 10);
-        
-        for (let i = 0; i < duration; i++) {
-            const currentDate = new Date(startDate);
-            currentDate.setDate(startDate.getDate() + i);
-            const dateString = currentDate.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+      const startDate = new Date(reservation.reservation_date);
+      const duration = parseInt(reservation.duration, 10);
 
-            // Increment the count for this date
-            if (reservationCounts[dateString]) {
-                reservationCounts[dateString]++;
-            } else {
-                reservationCounts[dateString] = 1;
-            }
+      for (let i = 0; i < duration; i++) {
+        const currentDate = new Date(startDate);
+        currentDate.setDate(startDate.getDate() + i);
+        const dateString = currentDate.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+
+        // Increment the count for this date
+        if (reservationCounts[dateString]) {
+          reservationCounts[dateString]++;
+        } else {
+          reservationCounts[dateString] = 1;
         }
+      }
     });
 
     return reservationCounts;
-}
+  }
 
-  
+
 
   async create(createReserveDto: ReservesDto): Promise<ReservesMongo> {
     const reservationDate = new Date(createReserveDto.reservation_date);
+    const cremationDate = new Date(createReserveDto.cremation_date);
     const durationDays = Number(createReserveDto.duration);
     const endDate = new Date(reservationDate);
     const nowDate = new Date();
     const sender = createReserveDto.sender;
     let owner_noti_id = createReserveDto.user_id
+
     if (reservationDate < nowDate) {
       throw new ConflictException("Reservation date cannot be in the past.");
     }
@@ -86,6 +88,11 @@ export class ReservesService {
       owner_noti_id = createReserveDto.user_id;
     }
     endDate.setDate(reservationDate.getDate() + durationDays);
+
+    if (cremationDate < reservationDate ||
+      (reservationDate <= cremationDate && cremationDate <= endDate)) {
+      throw new ConflictException('Cremation date cannot be before reservation date.');
+    }
 
     const existingReservations = await this.reservesModel.find({
       wat_id: createReserveDto.wat_id,
@@ -107,7 +114,7 @@ export class ReservesService {
     if (existingReservations.length >= maxWorkload.max_workload) {
       throw new ConflictException('A reservation with the same wat_id and overlapping dates already exists.');
     }
-    
+
     const noti = await this.notificationService.createNotification({
       title: 'Reservation Incoming',
       description: `Addons : ${createReserveDto.addons} Price: ${createReserveDto.price}`,
@@ -116,7 +123,7 @@ export class ReservesService {
 
     console.log(noti);
 
-    const newReserve = new this.reservesModel({...createReserveDto, noti_id : noti.id});
+    const newReserve = new this.reservesModel({ ...createReserveDto, noti_id: noti.id });
     return newReserve.save();
   }
 
@@ -133,8 +140,8 @@ export class ReservesService {
       throw new NotFoundException(`Reserve with ID ${id} not found`);
     }
 
-    await this.notificationService.updateNotificationById(updatedReserve.noti_id,{
-      title: `Reservation have been ${updateReserveDto.status}` ,
+    await this.notificationService.updateNotificationById(updatedReserve.noti_id, {
+      title: `Reservation have been ${updateReserveDto.status}`,
       desription: `describtion`,
       owner_id: updateReserveDto.sender == "user" ? updatedReserve.wat_id : updatedReserve.user_id,
     });
