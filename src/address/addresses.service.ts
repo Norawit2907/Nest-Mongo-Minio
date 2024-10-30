@@ -41,7 +41,6 @@ export class AddressesService {
         longtitude: address_lat_lng.lng,
       }
     );
-    console.log(newAddress);
     newAddress.save();
     return this.toEntity(newAddress);
   }
@@ -58,7 +57,6 @@ export class AddressesService {
     const existAddress = await this.addressModel.findOne({
       wat_id: id
     });
-    console.log(existAddress);
     return existAddress ? this.toEntity(existAddress) : null
   }
 
@@ -68,15 +66,18 @@ export class AddressesService {
       throw new BadRequestException('Invalid wat_id');
     }
     const existAddress = await this.getAddressByWatId(wat_id);
-  
     let address_lat_lng;
     try {
       address_lat_lng = await this.geocodingService.getCoordinates(updateAddressDto.address);
     } catch (error) {
-      throw new InternalServerErrorException('Failed to fetch coordinates');
+      try{
+        const wat = await this.WatsService.getWatById(wat_id)
+        address_lat_lng = await this.geocodingService.getCoordinates(wat.name);
+      }
+      catch(err){
+        throw new InternalServerErrorException('Failed to fetch coordinates');
+      }
     }
-
-    console.log(address_lat_lng.lat,address_lat_lng.lng)
   
     // Include coordinates in the update DTO if they are retrieved
     const updatedData = {
