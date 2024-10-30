@@ -14,6 +14,10 @@ export class UpdateUserDto {
   @ApiProperty()
   phoneNumber: string;
 
+  @IsString()
+  @ApiProperty()
+  profile_img: string;
+
   @IsEmail()
   @ApiProperty()
   email: string;

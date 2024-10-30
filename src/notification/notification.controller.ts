@@ -50,6 +50,11 @@ import {
       }
       return notification;
     }
+
+    @Get('/user/:id')
+    async getNotificationByUserId(@Param('id') id: string) {
+      return this.notificationService.getNotificationByUserId(id);
+    };
   
     // @UseGuards(AuthGuard)
     @Put(':id')

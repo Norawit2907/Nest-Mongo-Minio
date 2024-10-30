@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { UpdateNotificationDto } from './dto/update-notification.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -25,6 +25,18 @@ export class NotificationService {
     });
     
     return existNotification ? this.toEntity(existNotification) : null;
+  }
+
+  async getNotificationByUserId(id: string): Promise<NotificationMongo[]> {
+    const existingNotifications = await this.notificationModel.find({
+      owner_id: id,
+    });
+  
+    if (existingNotifications.length === 0) {
+      throw new ConflictException(`There are no notifications for User ID ${id}`);
+    }
+  
+    return existingNotifications;
   }
 
   async listNotification(): Promise<Notification[]> {
