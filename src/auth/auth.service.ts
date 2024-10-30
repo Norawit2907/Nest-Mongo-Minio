@@ -99,6 +99,7 @@ export class AuthService {
       min_cost: 0,
       max_cost: 0,
       max_workload: 1,
+      max_cremload: 1,
       description: "description",
       location: "location",
       picture: []

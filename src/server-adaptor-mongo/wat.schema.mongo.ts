@@ -41,6 +41,9 @@ export class WatMongo {
   @Prop({ required: true, default: 0 })
   max_workload: number;
 
+  @Prop({ required: true, default: 0 })
+  max_cremload: number;
+
   @Prop({ default: Date.now })
   createdAt: Date;
 
