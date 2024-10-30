@@ -5,11 +5,14 @@ export type ReservesDocument = HydratedDocument<ReservesMongo>;
 
 @Schema({ timestamps: true, collection: 'reserves' })
 export class ReservesMongo {
-  @Prop({ default: Date.now })
+  @Prop({ required: true })
   wat_id: string; 
 
-  @Prop({ default: Date.now })
+  @Prop({ required: true })
   user_id: string;
+
+  @Prop({ required: true })
+  noti_id: string;
 
   @Prop({ default: Date.now })
   reservation_date: string;
@@ -17,16 +20,16 @@ export class ReservesMongo {
   @Prop({ default: Date.now })
   cremation_date: string;
 
-  @Prop({ default: Date.now })
+  @Prop({ required: true })
   duration: string;
 
-  @Prop({ default: Date.now })
+  @Prop({ required: true })
   status: string;
 
-  @Prop({ default: Date.now })
+  @Prop({ required: true })
   price: number;
 
-  @Prop({ default: Date.now })
+  @Prop({ required: true })
   addons: string[];
 
 }

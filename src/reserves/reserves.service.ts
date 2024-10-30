@@ -75,7 +75,6 @@ export class ReservesService {
     const nowDate = new Date();
     const sender = createReserveDto.sender;
     let owner_noti_id = createReserveDto.user_id
-    // const noti_describtion = {};
     if (reservationDate < nowDate) {
       throw new ConflictException("Reservation date cannot be in the past.");
     }
@@ -96,8 +95,6 @@ export class ReservesService {
       },
     });
 
-    // console.log(nowDate == reservationDate);
-
     const existingCremations = await this.reservesModel.find({
       wat_id: createReserveDto.wat_id,
       cremation_date: createReserveDto.cremation_date
@@ -107,24 +104,19 @@ export class ReservesService {
       _id: new mongoose.Types.ObjectId(createReserveDto.wat_id),
     })
 
-    // console.log(maxWorkload.max_workload);
-    // console.log(existingCremations);
-    // console.log(endDate.toISOString().split('T')[0] < cremationDate.toISOString().split('T')[0]);
     if (existingReservations.length >= maxWorkload.max_workload) {
       throw new ConflictException('A reservation with the same wat_id and overlapping dates already exists.');
     }
-    // if (existingCremations.length > 0) {
-    //   throw new ConflictException('A Wat Meru is Full');
-    // }
-
-    // Send a notification after saving the reservation
-    await this.notificationService.createNotification({
+    
+    const noti = await this.notificationService.createNotification({
       title: 'Reservation Incoming',
       description: `Addons : ${createReserveDto.addons} Price: ${createReserveDto.price}`,
       owner_id: owner_noti_id,
     });
 
-    const newReserve = new this.reservesModel(createReserveDto);
+    console.log(noti);
+
+    const newReserve = new this.reservesModel({...createReserveDto, noti_id : noti.id});
     return newReserve.save();
   }
 
@@ -141,9 +133,9 @@ export class ReservesService {
       throw new NotFoundException(`Reserve with ID ${id} not found`);
     }
 
-    await this.notificationService.createNotification({
+    await this.notificationService.updateNotificationById(updatedReserve.noti_id,{
       title: `Reservation have been ${updateReserveDto.status}` ,
-      description: `describtion`,
+      desription: `describtion`,
       owner_id: updateReserveDto.sender == "user" ? updatedReserve.wat_id : updatedReserve.user_id,
     });
 
