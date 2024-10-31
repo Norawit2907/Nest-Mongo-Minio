@@ -14,12 +14,21 @@ export class AddonsController {
 
     @Post()
     async createAddon(@Body() createAddonDto: CreateAddonDto): Promise<Addon> {
+        console.log(createAddonDto);
+        
         return await this.addonsService.createAddon(createAddonDto);
     }
 
     @Get()
     async listAddons(): Promise<Addon[]> {
         return await this.addonsService.listAddons();
+    }
+
+    @Get('/:id')
+    async GetAddonById(
+        @Param('id') id:string
+    ): Promise<Addon>{
+        return await this.addonsService.getAddonById(id);
     }
 
     @Get('/wat/:id')
