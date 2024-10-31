@@ -29,6 +29,9 @@ export class ReservesMongo {
   @Prop({ required: true })
   addons: string[];
 
+  @Prop({ required: true })
+  pictures: string;
+
 }
 
 export const ReservesSchema = SchemaFactory.createForClass(ReservesMongo);

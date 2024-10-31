@@ -45,5 +45,10 @@ import {
     @IsNotEmpty()
     @ApiProperty({ example: ['ชุดครบเซ็ต', 'ชุดไม่ครบเซ็ต'], description: 'List of addons for the reservation' })
     addons: string[];
+
+    @IsString()
+    @IsNotEmpty()
+    @ApiProperty({ example: ['ชุดครบเซ็ต', 'ชุดไม่ครบเซ็ต'], description: 'List of addons for the reservation' })
+    pictures: string;
   }
   

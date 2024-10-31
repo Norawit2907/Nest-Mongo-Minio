@@ -9,6 +9,7 @@ export type ReservesBody = {
   status: string;
   price: number;
   addons: string[];
+  pictures: string;
 };
 
 export type Reserves = ReservesBody & dbMeta;
