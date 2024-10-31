@@ -88,6 +88,7 @@ export class ReservesService {
 
 
   async create(createReserveDto: ReservesDto): Promise<ReservesMongo> {
+
     const reservationDate = new Date(createReserveDto.reservation_date);
     const cremationDate = new Date(createReserveDto.cremation_date);
     const durationDays = Number(createReserveDto.duration);
@@ -112,7 +113,7 @@ export class ReservesService {
       (reservationDate <= cremationDate && cremationDate <= endDate)) {
       throw new ConflictException('Cremation date cannot be before reservation date.');
     }
-
+    
     const existingReservations = await this.reservesModel.find({
       wat_id: createReserveDto.wat_id,
       reservation_date: {
@@ -126,10 +127,12 @@ export class ReservesService {
       cremation_date: createReserveDto.cremation_date
     });
 
+    
     const maxWorkload = await this.watModel.findOne({
       _id: new mongoose.Types.ObjectId(createReserveDto.wat_id),
     })
-
+    
+    
     if (existingReservations.length >= maxWorkload.max_workload) {
       throw new ConflictException('A reservation with the same wat_id and overlapping dates already exists.');
     }
@@ -143,9 +146,8 @@ export class ReservesService {
       description: `Addons : ${createReserveDto.addons} Price: ${createReserveDto.price}`,
       owner_id: owner_noti_id,
     });
-
-
-    const newReserve = new this.reservesModel({ createReserveDto });
+    
+    const newReserve = new this.reservesModel( createReserveDto );
     return newReserve.save();
   }
 
