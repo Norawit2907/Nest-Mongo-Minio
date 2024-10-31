@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, NotFoundException, Param, Post, Put, Query } from '@nestjs/common'; 
+import { Body, Controller, Delete, Get, HttpCode, NotFoundException, Param, Post, Put, Query } from '@nestjs/common';
 import { User } from 'src/model/user.model';
 import { CreateWatDto } from './dto/create-wat.dto';
 import { WatsService } from './wats.service';
@@ -9,7 +9,7 @@ import { UpdateWatDto } from './dto/update-wat.dto';
 @ApiTags('wats')
 @Controller('wats')
 export class WatsController {
-    constructor(private readonly watsService: WatsService) {}
+    constructor(private readonly watsService: WatsService) { }
 
     @Post()
     async createWat(@Body() createwatDto: CreateWatDto): Promise<Wat> {
@@ -25,15 +25,24 @@ export class WatsController {
     async getWatsById(@Param('id') id: string): Promise<Wat> {
         const wat = await this.watsService.getWatById(id);
         if (!wat) {
-          throw new NotFoundException('Wat not found!');
+            throw new NotFoundException('Wat not found!');
         }
         return wat;
-      }
-    
+    }
+
+    @Get('adminId/:id')
+    async getWatsByAdminId(@Param('id') id: string): Promise<Wat> {
+        const wat = await this.watsService.getWatByAdminId(id);
+        if (!wat) {
+            throw new NotFoundException('Wat not found!');
+        }
+        return wat;
+    }
+
     @Get('/search')
     async searchWats(@Query('keyword') keyword: string): Promise<Wat[]> {
-        
-        
+
+
         if (!keyword) {
             throw new NotFoundException('Keyword is required for search');
         }
@@ -53,7 +62,7 @@ export class WatsController {
     }
 
     @Delete(':id')
-    @HttpCode(204) 
+    @HttpCode(204)
     async deleteWatById(@Param('id') id: string) {
         const wat = await this.watsService.getWatById(id);
         if (!wat) {

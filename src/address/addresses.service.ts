@@ -66,18 +66,20 @@ export class AddressesService {
       throw new BadRequestException('Invalid wat_id');
     }
     const existAddress = await this.getAddressByWatId(wat_id);
+    const wat = await this.WatsService.getWatById(wat_id)
     let address_lat_lng;
-    try {
-      address_lat_lng = await this.geocodingService.getCoordinates(updateAddressDto.address);
-    } catch (error) {
+    // try {
+    //   address_lat_lng = await this.geocodingService.getCoordinates(updateAddressDto.address);
+    // } catch (error) {
       try{
-        const wat = await this.WatsService.getWatById(wat_id)
+        console.log(wat.name)
         address_lat_lng = await this.geocodingService.getCoordinates(wat.name);
+        console.log(address_lat_lng);
       }
       catch(err){
         throw new InternalServerErrorException('Failed to fetch coordinates');
       }
-    }
+    // }
   
     // Include coordinates in the update DTO if they are retrieved
     const updatedData = {
