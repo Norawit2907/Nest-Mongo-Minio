@@ -27,7 +27,7 @@ export class NotificationService {
     return existNotification ? this.toEntity(existNotification) : null;
   }
 
-  async getNotificationByUserId(id: string): Promise<NotificationMongo[]> {
+  async getNotificationByOwnerId(id: string): Promise<NotificationMongo[]> {
     const existingNotifications = await this.notificationModel.find({
       owner_id: id,
     });
