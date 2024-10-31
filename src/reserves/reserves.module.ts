@@ -8,6 +8,7 @@ import { WatMongo, WatSchema } from 'src/server-adaptor-mongo/wat.schema.mongo';
 import { NotificationModule } from 'src/notification/notification.module';
 import { UserMongo,UserSchema } from 'src/server-adaptor-mongo/user.schema.mongo';
 import { UsersModule } from 'src/users/users.module';
+import { AddonsModule } from 'src/addons/addons.module';
 
 @Module({
     imports: [
@@ -17,6 +18,7 @@ import { UsersModule } from 'src/users/users.module';
         MongooseModule.forFeature([{ name: UserMongo.name, schema: UserSchema }]),
         UsersModule,
         NotificationModule,
+        AddonsModule
       ],
   controllers: [ReservesController],
   providers: [ReservesService],

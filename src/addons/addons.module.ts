@@ -10,7 +10,8 @@ import { AddonMongo, AddonSchema } from 'src/server-adaptor-mongo/addons.schema.
 
   ],
   controllers: [AddonsController],
-  providers: [AddonsService]
+  providers: [AddonsService],
+  exports: [AddonsService]
 })
 
 export class AddonsModule {}

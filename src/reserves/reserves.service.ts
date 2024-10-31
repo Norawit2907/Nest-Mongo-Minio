@@ -11,6 +11,7 @@ import { UsersService } from 'src/users/users.service';
 
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
+import { AddonsService } from 'src/addons/addons.service';
 
 @Injectable()
 export class ReservesService {
@@ -20,6 +21,7 @@ export class ReservesService {
     @InjectModel('UserMongo') private userModel: Model<UserMongo>,
     private readonly notificationService: NotificationService,
     private readonly userServices: UsersService,
+    private readonly addonService: AddonsService,
   ) { }
 
 
@@ -164,7 +166,6 @@ export class ReservesService {
       description: `วันจัดงาน : ${formattedReservationDate}
                     ระยะเวลา : ${createReserveDto.duration}
                     วันณาปนกิจ : ${formattedCremationDate}
-                    Addons : ${createReserveDto.addons} 
                     ราคา : ${createReserveDto.price}`,
       owner_id: createReserveDto.wat_id,
     });
@@ -174,7 +175,6 @@ export class ReservesService {
       description: `วันจัดงาน : ${formattedReservationDate}
                     ระยะเวลา : ${createReserveDto.duration}
                     วันณาปนกิจ : ${formattedCremationDate}
-                    Addons : ${createReserveDto.addons} 
                     ราคา : ${createReserveDto.price}`,
       owner_id: createReserveDto.user_id,
     });
@@ -215,21 +215,15 @@ export class ReservesService {
       console.log(wat,user)
       await this.notificationService.createNotification({
         title: `การจองของคุณได้รับการยืนยันจาก${wat.name}`,
-        description: `วันจัดงาน : ${formattedReservationDate}
-                      ระยะเวลา : ${updateReserveDto.duration}
-                      วันณาปนกิจ : ${formattedCremationDate}
-                      Addons : ${updateReserveDto.addons} 
-                      ราคา : ${updateReserveDto.price}`,
+        description: `วันเริ่มจัดงาน : ${formattedReservationDate}
+                      วันณาปนกิจ : ${formattedCremationDate}`,
         owner_id: updateReserveDto.user_id,
       })
       
       await this.notificationService.createNotification({
         title: `คุณได้ยืนยันการจองของ ${user.firstname} ${user.lastname}`,
-        description: `วันจัดงาน : ${formattedReservationDate}
-                      ระยะเวลา : ${updateReserveDto.duration}
-                      วันณาปนกิจ : ${formattedCremationDate}
-                      Addons : ${updateReserveDto.addons} 
-                      ราคา : ${updateReserveDto.price}`,
+        description: `วันเริ่มจัดงาน : ${formattedReservationDate}
+                      วันณาปนกิจ : ${formattedCremationDate}`,
         owner_id: updateReserveDto.wat_id,
       })
 
@@ -243,7 +237,7 @@ export class ReservesService {
 
       await this.notificationService.createNotification({
         title: `พิธีศพได้เสร็จสิ้นลงแล้ว`,
-        description: `เงินจำนวน ${updateReserveDto.price} บาท ได้ถูกโอนเข้าบัญชีของวัดแล้วค่ะ`,
+        description: `เงินได้ถูกโอนเข้าบัญชีของวัดแล้วค่ะ`,
         owner_id: updateReserveDto.wat_id,
       })
 
@@ -281,7 +275,23 @@ export class ReservesService {
     return updatedReserve;
   }
 
-
+  async getallAddonsfromreservationid(id: string){
+    const existingReservations = await this.reservesModel.findOne({ _id: new mongoose.Types.ObjectId(id) });
+    if(!existingReservations){
+      throw new NotFoundException(`Reserve with ID ${id} not found`);
+    }
+    const addons = await Promise.all(
+      existingReservations.addons.map(async (addon_id) => {
+          console.log(addon_id);
+          
+          const existingaddon = await this.addonService.getAddonById(addon_id);
+          return existingaddon;
+      })
+  );
+    
+    return addons;
+    
+  }
 
   async delete(id: string): Promise<{ message: string }> {
     const result = await this.reservesModel.findByIdAndDelete(id).exec();
