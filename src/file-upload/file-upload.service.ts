@@ -4,7 +4,7 @@ import { BufferedFile } from 'src/minio-client/file.model';
 
 @Injectable()
 export class FileUploadService {
-  constructor(private minioClientService: MinioClientService) {}
+  constructor(private   minioClientService: MinioClientService) {}
 
   async uploadSingle(image: BufferedFile) {
     const uploaded_image = await this.minioClientService.upload(image);
