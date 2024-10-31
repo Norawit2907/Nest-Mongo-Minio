@@ -66,6 +66,25 @@ export class ReservesService {
     return reservationCounts;
   }
 
+  async getCremationsAmount(id: string): Promise<{ [date: string]: number }> {
+    const existingReservations = await this.getReservationsByWatId(id);
+    const cremationCounts: { [date: string]: number } = {};
+
+    existingReservations.forEach(reservation => {
+      const cremationDate = new Date(reservation.cremation_date);
+
+      const dateString = cremationDate.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+
+      if (cremationCounts[dateString]) {
+        cremationCounts[dateString]++;
+      } else {
+        cremationCounts[dateString] = 1;
+      }
+    });
+
+    return cremationCounts;
+  }
+
 
 
   async create(createReserveDto: ReservesDto): Promise<ReservesMongo> {
@@ -115,18 +134,20 @@ export class ReservesService {
       throw new ConflictException('A reservation with the same wat_id and overlapping dates already exists.');
     }
 
-    const noti = await this.notificationService.createNotification({
+    if (existingCremations.length >= maxWorkload.max_workload) {
+      throw new ConflictException('A cremation with the same wat_id and overlapping dates already exists.');
+    }
+
+    await this.notificationService.createNotification({
       title: 'Reservation Incoming',
       description: `Addons : ${createReserveDto.addons} Price: ${createReserveDto.price}`,
       owner_id: owner_noti_id,
     });
 
-    console.log(noti);
 
-    const newReserve = new this.reservesModel({ ...createReserveDto, noti_id: noti.id });
+    const newReserve = new this.reservesModel({ createReserveDto });
     return newReserve.save();
   }
-
 
   async update(
     id: string,
@@ -140,9 +161,9 @@ export class ReservesService {
       throw new NotFoundException(`Reserve with ID ${id} not found`);
     }
 
-    await this.notificationService.updateNotificationById(updatedReserve.noti_id, {
+    await this.notificationService.createNotification({
       title: `Reservation have been ${updateReserveDto.status}`,
-      desription: `describtion`,
+      description: `describtion`,
       owner_id: updateReserveDto.sender == "user" ? updatedReserve.wat_id : updatedReserve.user_id,
     });
 

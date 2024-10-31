@@ -44,6 +44,10 @@ export class AuthService {
       if(userexist){
         throw new ForbiddenException("Email already taken")
       }
+    const userExist = await this.usersService.getUserByPhoneNumber(body.phoneNumber);
+      if(userExist){
+        throw new ForbiddenException("Phone Number already taken")
+      }
     const newUser = await this.usersService.createUser(body)
     const payload = {
       sub: newUser.id,

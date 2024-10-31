@@ -11,9 +11,6 @@ export class ReservesMongo {
   @Prop({ required: true })
   user_id: string;
 
-  @Prop({ required: true })
-  noti_id: string;
-
   @Prop({ default: Date.now })
   reservation_date: string;
 
