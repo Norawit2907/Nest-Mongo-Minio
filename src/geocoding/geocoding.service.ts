@@ -8,6 +8,7 @@ export class GeocodingService {
     try {
       // Ensure the address is properly URL-encoded for special characters like Thai text
       const encodedAddress = encodeURIComponent(address);
+      console.log(encodedAddress);
       const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodedAddress}&key=AIzaSyC_qm58mcKFbpx4Gv9vQyLdK9hSrnpLA2s`;
 
       const response = await axios.get(url);
