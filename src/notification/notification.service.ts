@@ -32,10 +32,6 @@ export class NotificationService {
       owner_id: id,
     });
   
-    if (existingNotifications.length === 0) {
-      throw new ConflictException(`There are no notifications for User ID ${id}`);
-    }
-  
     return existingNotifications;
   }
 
@@ -60,6 +56,7 @@ export class NotificationService {
   }
 
   async deleteNotificationById(id: string): Promise<null> {
+    console.log(id)
     await this.notificationModel.deleteOne({ _id: new mongoose.Types.ObjectId(id) });
     return null;
   }
