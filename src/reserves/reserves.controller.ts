@@ -49,6 +49,15 @@ export class ReservesController {
     return this.reservesService.getReservationsAmount(id);
   }
 
+  @Get('/sala/:id')
+  @ApiOperation({ summary: 'Retrieve a reserve by ID' })
+  @ApiParam({ name: 'id', example: '6521d8e7abf8f1234567890', description: 'ID of the reserve' })
+  @ApiResponse({ status: 200, description: 'Reserve found' })
+  @ApiResponse({ status: 404, description: 'Reserve not found' })
+  getSalaAmount(@Param('id') id: string) {
+    return this.reservesService.getSalaAmount(id);
+  }
+
   @Get('/cremationsload/:id')
   @ApiOperation({ summary: 'Retrieve a reserve by ID' })
   @ApiParam({ name: 'id', example: '6521d8e7abf8f1234567890', description: 'ID of the reserve' })

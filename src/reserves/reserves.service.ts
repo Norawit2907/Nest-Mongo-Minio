@@ -70,6 +70,35 @@ export class ReservesService {
     return reservationCounts;
   }
 
+  async getSalaAmount(id: string): Promise<{ [date: string]: string }> {
+    const existingReservations = await this.getReservationsByWatId(id);
+    const reservationCounts: { [date: string]: string } = {};
+
+    existingReservations.forEach(reservation => {
+        const startDate = new Date(reservation.reservation_date);
+        const duration = parseInt(reservation.duration, 10);
+        const addon_sala = reservation.addons.find((addon: any) => addon.catalog === "sala");
+
+        if (addon_sala) {
+            console.log((addon_sala as any).name);
+        } else {
+            console.log("No 'sala' catalog item found");
+        }
+
+        for (let i = 0; i < duration; i++) {
+            const currentDate = new Date(startDate);
+            currentDate.setDate(startDate.getDate() + i);
+            const dateString = currentDate.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+
+            // Store the name of the sala item if it exists, otherwise an empty string
+            reservationCounts[dateString] = addon_sala ? (addon_sala as any).name : "";
+        }
+    });
+
+    return reservationCounts;
+}
+
+
   async getCremationsAmount(id: string): Promise<{ [date: string]: number }> {
     const existingReservations = await this.getReservationsByWatId(id);
     const cremationCounts: { [date: string]: number } = {};
