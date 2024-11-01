@@ -25,5 +25,14 @@ import {
     @ApiProperty({ example: 'user', description: 'User identifier who made the reservation' })
     sender: string;
 
+    @IsDateString()
+    @ApiProperty({ example: '2024-10-18', description: 'Date of reservation in ISO format' })
+    reservation_date: string;
+  
+    @IsDateString()
+    @IsNotEmpty()
+    @ApiProperty({ example: '2024-10-20', description: 'Cremation date in ISO format' })
+    cremation_date: string;
+
   }
   

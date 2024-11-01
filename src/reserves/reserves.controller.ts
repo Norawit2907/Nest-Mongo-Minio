@@ -67,6 +67,11 @@ export class ReservesController {
     return this.reservesService.getReservationsAmount(id);
   }
 
+  @Get('/alladdons/:id')
+  getallAddonsfromreservationid(@Param('id') id: string) {
+    return this.reservesService.getallAddonsfromreservationid(id);
+  }
+  
   
 
   @Post()

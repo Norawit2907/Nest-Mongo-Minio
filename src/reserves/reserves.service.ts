@@ -9,6 +9,10 @@ import { NotificationService } from 'src/notification/notification.service';
 import { Reserves } from 'src/model/reserves.model';
 import { UsersService } from 'src/users/users.service';
 
+import { format } from 'date-fns';
+import { th } from 'date-fns/locale';
+import { AddonsService } from 'src/addons/addons.service';
+
 @Injectable()
 export class ReservesService {
   constructor(
@@ -17,6 +21,7 @@ export class ReservesService {
     @InjectModel('UserMongo') private userModel: Model<UserMongo>,
     private readonly notificationService: NotificationService,
     private readonly userServices: UsersService,
+    private readonly addonService: AddonsService,
   ) { }
 
 
@@ -176,22 +181,29 @@ export class ReservesService {
       throw new ConflictException('A cremation with the same wat_id and overlapping dates already exists.');
     }
 
+    const formatThaiDate = (date: Date): string => {
+      const formattedDate = format(date, 'd MMM yyyy', { locale: th });
+      const buddhistYear = date.getFullYear() + 543;
+      return formattedDate.replace(/(\d{4})$/, buddhistYear.toString());
+    };
+
+    const formattedReservationDate = formatThaiDate(reservationDate);
+    const formattedCremationDate = formatThaiDate(cremationDate);
+
     await this.notificationService.createNotification({
       title: `คุณมีการจองใหม่จาก ${user.firstname} ${user.lastname}`,
-      description: `วันจัดงาน : ${createReserveDto.reservation_date}
+      description: `วันจัดงาน : ${formattedReservationDate}
                     ระยะเวลา : ${createReserveDto.duration}
-                    วันณาปนกิจ : ${createReserveDto.cremation_date}
-                    Addons : ${createReserveDto.addons} 
+                    วันณาปนกิจ : ${formattedCremationDate}
                     ราคา : ${createReserveDto.price}`,
       owner_id: createReserveDto.wat_id,
     });
 
     await this.notificationService.createNotification({
       title: `การจองของคุณสำเร็จและรอการยืนยันจาก${wat.name}`,
-      description: `วันจัดงาน : ${createReserveDto.reservation_date}
+      description: `วันจัดงาน : ${formattedReservationDate}
                     ระยะเวลา : ${createReserveDto.duration}
-                    วันณาปนกิจ : ${createReserveDto.cremation_date}
-                    Addons : ${createReserveDto.addons} 
+                    วันณาปนกิจ : ${formattedCremationDate}
                     ราคา : ${createReserveDto.price}`,
       owner_id: createReserveDto.user_id,
     });
@@ -204,9 +216,12 @@ export class ReservesService {
     id: string,
     updateReserveDto: Partial<ReservesDto>,
   ): Promise<ReservesMongo> {
+    const reservationDate = new Date(updateReserveDto.reservation_date);
+    const cremationDate = new Date(updateReserveDto.cremation_date);
     const updatedReserve = await this.reservesModel
     .findByIdAndUpdate(id, updateReserveDto, { new: true })
     .exec();
+
     
     if (!updatedReserve) {
       throw new NotFoundException(`Reserve with ID ${id} not found`);
@@ -215,26 +230,29 @@ export class ReservesService {
     const wat = await this.watModel.findOne({_id: new mongoose.Types.ObjectId(updateReserveDto.wat_id)});
     const user = await this.userModel.findOne({_id: new mongoose.Types.ObjectId(updateReserveDto.user_id)});
     
+    const formatThaiDate = (date: Date): string => {
+      const formattedDate = format(date, 'd MMM yyyy', { locale: th });
+      const buddhistYear = date.getFullYear() + 543;
+      return formattedDate.replace(/(\d{4})$/, buddhistYear.toString());
+    };
+
+    const formattedReservationDate = formatThaiDate(reservationDate);
+    const formattedCremationDate = formatThaiDate(cremationDate);
+
     if(updateReserveDto.status === 'accept') {
       console.log(updateReserveDto.status);
       console.log(wat,user)
       await this.notificationService.createNotification({
         title: `การจองของคุณได้รับการยืนยันจาก${wat.name}`,
-        description: `วันจัดงาน : ${updateReserveDto.reservation_date}
-                      ระยะเวลา : ${updateReserveDto.duration}
-                      วันณาปนกิจ : ${updateReserveDto.cremation_date}
-                      Addons : ${updateReserveDto.addons} 
-                      ราคา : ${updateReserveDto.price}`,
+        description: `วันเริ่มจัดงาน : ${formattedReservationDate}
+                      วันณาปนกิจ : ${formattedCremationDate}`,
         owner_id: updateReserveDto.user_id,
       })
       
       await this.notificationService.createNotification({
         title: `คุณได้ยืนยันการจองของ ${user.firstname} ${user.lastname}`,
-        description: `วันจัดงาน : ${updateReserveDto.reservation_date}
-        ระยะเวลา : ${updateReserveDto.duration}
-        วันณาปนกิจ : ${updateReserveDto.cremation_date}
-        Addons : ${updateReserveDto.addons} 
-        ราคา : ${updateReserveDto.price}`,
+        description: `วันเริ่มจัดงาน : ${formattedReservationDate}
+                      วันณาปนกิจ : ${formattedCremationDate}`,
         owner_id: updateReserveDto.wat_id,
       })
 
@@ -248,7 +266,7 @@ export class ReservesService {
 
       await this.notificationService.createNotification({
         title: `พิธีศพได้เสร็จสิ้นลงแล้ว`,
-        description: `เงินจำนวน ${updateReserveDto.price} บาท ได้ถูกโอนเข้าบัญชีของวัดแล้วค่ะ`,
+        description: `เงินได้ถูกโอนเข้าบัญชีของวัดแล้วค่ะ`,
         owner_id: updateReserveDto.wat_id,
       })
 
@@ -286,7 +304,23 @@ export class ReservesService {
     return updatedReserve;
   }
 
-
+  async getallAddonsfromreservationid(id: string){
+    const existingReservations = await this.reservesModel.findOne({ _id: new mongoose.Types.ObjectId(id) });
+    if(!existingReservations){
+      throw new NotFoundException(`Reserve with ID ${id} not found`);
+    }
+    const addons = await Promise.all(
+      existingReservations.addons.map(async (addon_id) => {
+          console.log(addon_id);
+          
+          const existingaddon = await this.addonService.getAddonById(addon_id);
+          return existingaddon;
+      })
+  );
+    
+    return addons;
+    
+  }
 
   async delete(id: string): Promise<{ message: string }> {
     const result = await this.reservesModel.findByIdAndDelete(id).exec();
