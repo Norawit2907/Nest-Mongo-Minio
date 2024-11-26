@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { ReservesDto } from './dto/reserves.dto';
@@ -22,13 +26,11 @@ export class ReservesService {
     private readonly notificationService: NotificationService,
     private readonly userServices: UsersService,
     private readonly addonService: AddonsService,
-  ) { }
-
+  ) {}
 
   async findAll(): Promise<ReservesMongo[]> {
     return this.reservesModel.find().exec();
   }
-
 
   async findOne(id: string): Promise<ReservesMongo> {
     const reserve = await this.reservesModel.findById(id).exec();
@@ -54,7 +56,7 @@ export class ReservesService {
     const existingReservations = await this.getReservationsByWatId(id);
     const reservationCounts: { [date: string]: number } = {};
 
-    existingReservations.forEach(reservation => {
+    existingReservations.forEach((reservation) => {
       const startDate = new Date(reservation.reservation_date);
       const duration = parseInt(reservation.duration, 10);
 
@@ -79,36 +81,39 @@ export class ReservesService {
     const existingReservations = await this.getReservationsByWatId(id);
     const reservationCounts: { [date: string]: string } = {};
 
-    existingReservations.forEach(reservation => {
-        const startDate = new Date(reservation.reservation_date);
-        const duration = parseInt(reservation.duration, 10);
-        const addon_sala = reservation.addons.find((addon: any) => addon.catalog === "sala");
+    existingReservations.forEach((reservation) => {
+      const startDate = new Date(reservation.reservation_date);
+      const duration = parseInt(reservation.duration, 10);
+      const addon_sala = reservation.addons.find(
+        (addon: any) => addon.catalog === 'sala',
+      );
 
-        if (addon_sala) {
-            console.log((addon_sala as any).name);
-        } else {
-            console.log("No 'sala' catalog item found");
-        }
+      if (addon_sala) {
+        console.log((addon_sala as any).name);
+      } else {
+        console.log("No 'sala' catalog item found");
+      }
 
-        for (let i = 0; i < duration; i++) {
-            const currentDate = new Date(startDate);
-            currentDate.setDate(startDate.getDate() + i);
-            const dateString = currentDate.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+      for (let i = 0; i < duration; i++) {
+        const currentDate = new Date(startDate);
+        currentDate.setDate(startDate.getDate() + i);
+        const dateString = currentDate.toISOString().split('T')[0]; // Format as YYYY-MM-DD
 
-            // Store the name of the sala item if it exists, otherwise an empty string
-            reservationCounts[dateString] = addon_sala ? (addon_sala as any).name : "";
-        }
+        // Store the name of the sala item if it exists, otherwise an empty string
+        reservationCounts[dateString] = addon_sala
+          ? (addon_sala as any).name
+          : '';
+      }
     });
 
     return reservationCounts;
-}
-
+  }
 
   async getCremationsAmount(id: string): Promise<{ [date: string]: number }> {
     const existingReservations = await this.getReservationsByWatId(id);
     const cremationCounts: { [date: string]: number } = {};
 
-    existingReservations.forEach(reservation => {
+    existingReservations.forEach((reservation) => {
       const cremationDate = new Date(reservation.cremation_date);
 
       const dateString = cremationDate.toISOString().split('T')[0]; // Format as YYYY-MM-DD
@@ -123,22 +128,26 @@ export class ReservesService {
     return cremationCounts;
   }
 
-
-
   async create(createReserveDto: ReservesDto): Promise<ReservesMongo> {
-
     const reservationDate = new Date(createReserveDto.reservation_date);
+    reservationDate.setDate(reservationDate.getDate() + 1);
+
+    console.log(reservationDate.toISOString());
     const cremationDate = new Date(createReserveDto.cremation_date);
     const durationDays = Number(createReserveDto.duration);
     const endDate = new Date(reservationDate);
     const nowDate = new Date();
-    const wat = await this.watModel.findOne({_id: new mongoose.Types.ObjectId(createReserveDto.wat_id)});
-    const user = await this.userModel.findOne({_id: new mongoose.Types.ObjectId(createReserveDto.user_id)});
+    const wat = await this.watModel.findOne({
+      _id: new mongoose.Types.ObjectId(createReserveDto.wat_id),
+    });
+    const user = await this.userModel.findOne({
+      _id: new mongoose.Types.ObjectId(createReserveDto.user_id),
+    });
     // const sender = createReserveDto.sender;
     let owner_noti_id = createReserveDto.wat_id;
 
     if (reservationDate < nowDate) {
-      throw new ConflictException("Reservation date cannot be in the past.");
+      throw new ConflictException('Reservation date cannot be in the past.');
     }
 
     // if (sender === 'user') {
@@ -149,11 +158,15 @@ export class ReservesService {
     // }
     endDate.setDate(reservationDate.getDate() + durationDays);
 
-    if (cremationDate < reservationDate ||
-      (reservationDate <= cremationDate && cremationDate <= endDate)) {
-      throw new ConflictException('Cremation date cannot be before reservation date.');
+    if (
+      cremationDate < reservationDate ||
+      (reservationDate <= cremationDate && cremationDate <= endDate)
+    ) {
+      throw new ConflictException(
+        'Cremation date cannot be before reservation date.',
+      );
     }
-    
+
     const existingReservations = await this.reservesModel.find({
       wat_id: createReserveDto.wat_id,
       reservation_date: {
@@ -164,21 +177,23 @@ export class ReservesService {
 
     const existingCremations = await this.reservesModel.find({
       wat_id: createReserveDto.wat_id,
-      cremation_date: createReserveDto.cremation_date
+      cremation_date: createReserveDto.cremation_date,
     });
 
-    
     const maxWorkload = await this.watModel.findOne({
       _id: new mongoose.Types.ObjectId(createReserveDto.wat_id),
-    })
-    
-    
+    });
+
     if (existingReservations.length >= maxWorkload.max_workload) {
-      throw new ConflictException('A reservation with the same wat_id and overlapping dates already exists.');
+      throw new ConflictException(
+        'A reservation with the same wat_id and overlapping dates already exists.',
+      );
     }
 
     if (existingCremations.length >= maxWorkload.max_workload) {
-      throw new ConflictException('A cremation with the same wat_id and overlapping dates already exists.');
+      throw new ConflictException(
+        'A cremation with the same wat_id and overlapping dates already exists.',
+      );
     }
 
     const formatThaiDate = (date: Date): string => {
@@ -207,8 +222,8 @@ export class ReservesService {
                     ราคา : ${createReserveDto.price}`,
       owner_id: createReserveDto.user_id,
     });
-    
-    const newReserve = new this.reservesModel( createReserveDto );
+
+    const newReserve = new this.reservesModel({...createReserveDto, reservation_date : reservationDate.toISOString()});
     return newReserve.save();
   }
 
@@ -219,17 +234,20 @@ export class ReservesService {
     const reservationDate = new Date(updateReserveDto.reservation_date);
     const cremationDate = new Date(updateReserveDto.cremation_date);
     const updatedReserve = await this.reservesModel
-    .findByIdAndUpdate(id, updateReserveDto, { new: true })
-    .exec();
+      .findByIdAndUpdate(id, updateReserveDto, { new: true })
+      .exec();
 
-    
     if (!updatedReserve) {
       throw new NotFoundException(`Reserve with ID ${id} not found`);
     }
-    
-    const wat = await this.watModel.findOne({_id: new mongoose.Types.ObjectId(updateReserveDto.wat_id)});
-    const user = await this.userModel.findOne({_id: new mongoose.Types.ObjectId(updateReserveDto.user_id)});
-    
+
+    const wat = await this.watModel.findOne({
+      _id: new mongoose.Types.ObjectId(updateReserveDto.wat_id),
+    });
+    const user = await this.userModel.findOne({
+      _id: new mongoose.Types.ObjectId(updateReserveDto.user_id),
+    });
+
     const formatThaiDate = (date: Date): string => {
       const formattedDate = format(date, 'd MMM yyyy', { locale: th });
       const buddhistYear = date.getFullYear() + 543;
@@ -239,87 +257,86 @@ export class ReservesService {
     const formattedReservationDate = formatThaiDate(reservationDate);
     const formattedCremationDate = formatThaiDate(cremationDate);
 
-    if(updateReserveDto.status === 'accept') {
+    if (updateReserveDto.status === 'accept') {
       console.log(updateReserveDto.status);
-      console.log(wat,user)
+      console.log(wat, user);
       await this.notificationService.createNotification({
         title: `การจองของคุณได้รับการยืนยันจาก${wat.name}`,
         description: `วันเริ่มจัดงาน : ${formattedReservationDate}
                       วันณาปนกิจ : ${formattedCremationDate}`,
         owner_id: updateReserveDto.user_id,
-      })
-      
+      });
+
       await this.notificationService.createNotification({
         title: `คุณได้ยืนยันการจองของ ${user.firstname} ${user.lastname}`,
         description: `วันเริ่มจัดงาน : ${formattedReservationDate}
                       วันณาปนกิจ : ${formattedCremationDate}`,
         owner_id: updateReserveDto.wat_id,
-      })
-
-      
-    } else if(updateReserveDto.status === 'passed') {
+      });
+    } else if (updateReserveDto.status === 'passed') {
       await this.notificationService.createNotification({
         title: `งานของคุณได้จัดเสร็จสิ้นแล้ว, ขอแสดงความเสียใจกับญาติผู้เสียชีวิตด้วยค่ะ`,
         description: `ขอบคุณที่ใช้บริการของเรา Meur-Online ยินดีให้บริการค่ะ ไว้มาใช้บริการใหม่อีกครั้งนะคะ`,
         owner_id: updateReserveDto.user_id,
-      })
+      });
 
       await this.notificationService.createNotification({
         title: `พิธีศพได้เสร็จสิ้นลงแล้ว`,
         description: `เงินได้ถูกโอนเข้าบัญชีของวัดแล้วค่ะ`,
         owner_id: updateReserveDto.wat_id,
-      })
-
-
-    } else if(updateReserveDto.status === 'reject' && updateReserveDto.sender === 'user') {
+      });
+    } else if (
+      updateReserveDto.status === 'reject' &&
+      updateReserveDto.sender === 'user'
+    ) {
       await this.notificationService.createNotification({
         title: `การจองของคุณถูกปฏิเสธจาก${wat.name}`,
         description: `ขอแสดงความเสียใจด้วยค่ะ ลองหาวัดจองใหม่อีกครั้งนะคะ`,
         owner_id: updateReserveDto.user_id,
-      })
-      
+      });
+
       await this.notificationService.createNotification({
         title: `คุณได้ปฏิเสธการจองของ ${user.firstname} ${user.lastname}`,
         description: `หากเปลี่ยนใจหรือผิดพลาดในกรณีใดๆก็ตาม สามารถติดต่อ ${user.firstname} ${user.lastname} ได้ที่เบอร์โทรศัพท์ ${user.phoneNumber} ค่ะ`,
         owner_id: updateReserveDto.wat_id,
-      })
-
-
-    } else if(updateReserveDto.status === 'reject' && updateReserveDto.sender === 'wat') {
+      });
+    } else if (
+      updateReserveDto.status === 'reject' &&
+      updateReserveDto.sender === 'wat'
+    ) {
       await this.notificationService.createNotification({
         title: `คุณได้ทำการยกเลิกการจองของ ${wat.name}`,
         description: `เงินในการจองจะถูกคืนให้คุณ ${user.firstname} ${user.lastname} ในเร็วๆนี้ค่ะ`,
         owner_id: updateReserveDto.user_id,
-      })
-      
+      });
+
       await this.notificationService.createNotification({
         title: `${user.firstname} ${user.lastname} ได้ยกเลิกการจอง`,
         description: `หากมีปัญหาใดๆ สามารถติดต่อ ${user.firstname} ${user.lastname} ได้ที่เบอร์โทรศัพท์ ${user.phoneNumber} ค่ะ`,
         owner_id: updateReserveDto.wat_id,
-      })
-      
+      });
     }
-
 
     return updatedReserve;
   }
 
-  async getallAddonsfromreservationid(id: string){
-    const existingReservations = await this.reservesModel.findOne({ _id: new mongoose.Types.ObjectId(id) });
-    if(!existingReservations){
+  async getallAddonsfromreservationid(id: string) {
+    const existingReservations = await this.reservesModel.findOne({
+      _id: new mongoose.Types.ObjectId(id),
+    });
+    if (!existingReservations) {
       throw new NotFoundException(`Reserve with ID ${id} not found`);
     }
     const addons = await Promise.all(
       existingReservations.addons.map(async (addon_id) => {
-          console.log(addon_id);
-          
-          const existingaddon = await this.addonService.getAddonById(addon_id);
-          return existingaddon;
-      })
-  );
-    
+        console.log(addon_id);
+
+        const existingaddon = await this.addonService.getAddonById(addon_id);
+        return existingaddon;
+      }),
+    );
+
     return addons;
-    
   }
 
   async delete(id: string): Promise<{ message: string }> {

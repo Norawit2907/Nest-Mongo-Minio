@@ -13,6 +13,9 @@ export class WatsController {
 
     @Post()
     async createWat(@Body() createwatDto: CreateWatDto): Promise<Wat> {
+        createwatDto.min_cost = 2000
+        createwatDto.max_cost = 10000
+        createwatDto.location = "เลขที่ 646 ถนนกรุงเกษม แขวงวัดโสมนัส เขตป้อมปราบศัตรูพ่าย กรุงเทพมหานคร 10100"
         return await this.watsService.createWat(createwatDto);
     }
 
